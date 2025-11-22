@@ -1,27 +1,36 @@
-from flask import Blueprint, render_template, jsonify
+from flask import Blueprint, request, jsonify
+from .models import Computer, Metric
+from . import db
+from datetime import datetime
 
 main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    return 'SysMonitor - Главная страница (будет реализован интерфейс)'
+    return 'SysMonitor работает!'
 
-@main.route('/api/computers')
-def get_computers():
-    computers = [
-        {
-            'name': 'Web-Server-01',
-            'status': 'online',
-            'cpu': 25,
-            'ram': 40,
-            'disk': 95
-            },
-        {
-            'name': 'DB-Server-02',
-            'status': 'online',
-            'cpu': 65,
-            'ram': 89,
-            'disk': 45
-            }
-        ]
-    return jsonify(computers)
+@main.route('/api/metrics', methods=['POST'])
+def receive_metrics():
+    data = request.get_json()
+    hostname = data.get('hostname')
+
+    if not hostname:
+        return jsonify({'error': 'hostname required'}), 400
+
+    comp = Computer.query.filter_by(hostname=hostname).first()
+    if not comp:
+        comp = Computer(hostname=hostname)
+        db.session.add(comp)
+        db.session.commit()
+
+    metric = Metric(
+        computer_id=comp.id,
+        cpu_percent=data.get('cpu_percent'),
+        memory_usage=data.get('memory_usage'),
+        disk_usage=data.get('disk_usage'),
+        processes=data.get('processes'),
+    )
+    db.session.add(metric)
+    db.session.commit()
+
+    return jsonify({'status': 'ok'}), 200
