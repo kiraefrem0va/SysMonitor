@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ comp.hostname }} — метрики</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 { margin-bottom: 10px; }
+        table {
+            width: 60%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th, td {
+            padding: 8px;
+            border-bottom: 1px solid #ccc;
+        }
+        a { color: #0066cc; }
+    </style>
+</head>
+<body>
+
+<a href="{{ url_for('main.index') }}">← Назад</a>
+
+<h1>{{ comp.hostname }}</h1>
+<p>История последних метрик:</p>
+
+<table>
+    <tr>
+        <th>Время</th>
+        <th>CPU</th>
+        <th>RAM</th>
+        <th>Disk</th>
+        <th>Процессы</th>
+    </tr>
+
+    {% for m in metrics %}
+    <tr>
+        <td>{{ m.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>{{ m.cpu_percent }}%</td>
+        <td>{{ m.memory_usage }}%</td>
+        <td>{{ m.disk_usage }}%</td>
+        <td>{{ m.processes }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>
+    <a href="{{ url_for('main.export_metrics', comp_id=comp.id) }}">Экспортировать в JSON</a>
+</p>
+
+</body>
+</html>

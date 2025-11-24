@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, render_template, request, jsonify
 from .models import Computer, Metric
 from . import db
 from datetime import datetime
@@ -7,7 +7,10 @@ main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    return 'SysMonitor работает!'
+    from .models import Computer
+    computers = Computer.query.all()
+    return render_template('index.html', computers=computers)
+
 
 @main.route('/api/metrics', methods=['POST'])
 def receive_metrics():
