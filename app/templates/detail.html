@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>Компьютер: {{ comp.hostname }}</h2>
+
+<h3>Последняя метрика</h3>
+
+{% if metrics %}
+    {% set last = metrics[0] %}
+    <ul>
+        <li><strong>CPU:</strong> {{ last.cpu_percent }}%</li>
+        <li><strong>RAM:</strong> {{ last.memory_usage }}%</li>
+        <li><strong>Disk:</strong> {{ last.disk_usage }}%</li>
+        <li><strong>Processes:</strong> {{ last.processes }}</li>
+    </ul>
+{% else %}
+    <p>Пока нет данных.</p>
+{% endif %}
+
+<hr>
+
+<h3>Последние 20 метрик</h3>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>CPU</th>
+        <th>RAM</th>
+        <th>Disk</th>
+        <th>Processes</th>
+        <th>Timestamp</th>
+    </tr>
+
+    {% for m in metrics %}
+    <tr>
+        <td>{{ m.id }}</td>
+        <td>{{ m.cpu_percent }}%</td>
+        <td>{{ m.memory_usage }}%</td>
+        <td>{{ m.disk_usage }}%</td>
+        <td>{{ m.processes }}</td>
+        <td>{{ m.timestamp.strftime('%H:%M:%S') }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

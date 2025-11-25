@@ -4,4 +4,4 @@ app = create_app()
 
 if __name__ == '__main__':
     print('Запуск SysMonitor сервера...')
-    app.run()
+    app.run(debug=True)

@@ -4,73 +4,316 @@
     <meta charset="UTF-8">
     <title>SysMonitor — компьютеры</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
+            margin: 0;
             font-family: Arial, sans-serif;
-            margin: 20px;
+            background-color: #e5fff3;
         }
-        h1 { margin-bottom: 20px; }
-        table {
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Левое меню */
+        .sidebar {
+            width: 80px;
+            background: #b9f4d9;
+            border-right: 2px solid #77c8a5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 10px;
+        }
+        .logo {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-size: 14px;
+            font-weight: bold;
+            color: #1f6c4f;
+            margin-bottom: 20px;
+        }
+        .nav-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #e9fff5;
+            border: 1px solid #9ed9bb;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #4b7c63;
+            cursor: pointer;
+        }
+        .nav-icon:last-child {
+            margin-top: auto;
+        }
+
+        /* Основная часть */
+        .main {
+            flex: 1;
+            padding: 20px 30px;
+        }
+        .main-title {
+            text-align: center;
+            font-size: 28px;
+            margin: 5px 0 20px;
+            color: #1f6c4f;
+        }
+
+        /* Поиск */
+        .search-wrapper {
+            max-width: 380px;
+            margin: 0 auto 25px;
+            position: relative;
+        }
+        .search-input {
             width: 100%;
-            border-collapse: collapse;
+            padding: 10px 14px 10px 38px;
+            border-radius: 20px;
+            border: 1px solid #b0d8c7;
+            outline: none;
+            font-size: 14px;
+            background: #f6fffa;
         }
-        th, td {
-            padding: 10px;
-            border-bottom: 1px solid #ccc;
-            text-align: left;
+        .search-input::placeholder {
+            color: #b8b8b8;
         }
-        tr:hover {
-            background-color: #f5f5f5;
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #a0a0a0;
         }
-        .offline {
-            color: #888;
+
+        /* Карточки */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px 22px;
         }
-        .warning {
-            color: red;
+        .card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 12px 14px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+        .card-offline {
+            opacity: 0.7;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .status-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .status-online {
+            background: #12b300;
+        }
+        .status-offline {
+            background: #b0b0b0;
+        }
+        .card-title {
+            font-weight: bold;
+            font-size: 15px;
+            color: #2c2c2c;
+        }
+        .arrow-link {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 1px solid #c5d8cf;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #3c6e57;
+            font-size: 16px;
+            background: #f8fffb;
+        }
+
+        .metric-row {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+            font-size: 13px;
+        }
+        .metric-label {
+            width: 40px;
             font-weight: bold;
         }
-        a {
-            color: #0066cc;
+        .bar-wrapper {
+            flex: 1;
+            margin-left: 4px;
+            background: #dedede;
+            border-radius: 8px;
+            height: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .bar-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+        }
+        .bar-cpu {
+            background: #a9ff00;
+        }
+        .bar-ram {
+            background: #ffe600;
+        }
+        .bar-disk {
+            background: #ff3b61;
+        }
+        .metric-value {
+            width: 38px;
+            text-align: right;
+            font-size: 12px;
+            margin-left: 6px;
+        }
+
+        .card-footer {
+            margin-top: 6px;
+            font-size: 11px;
+            color: #777;
+        }
+
+        /* Нижняя панель */
+        .pagination {
+            margin-top: 18px;
+            display: flex;
+            justify-content: flex-end;
+            font-size: 13px;
+        }
+        .page-btn {
+            border-radius: 15px;
+            background: #f6fffa;
+            border: 1px solid #9ed9bb;
+            padding: 5px 12px;
+            cursor: pointer;
+            color: #1f6c4f;
         }
     </style>
 </head>
 <body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="logo">SysMonitor</div>
 
-<h1>Список компьютеров</h1>
+        <div class="nav-icon">⚙️</div>
+        <div class="nav-icon">💻</div>
+        <div class="nav-icon">💬</div>
+        <div class="nav-icon">💡</div>
 
-<table>
-    <tr>
-        <th>Имя</th>
-        <th>CPU</th>
-        <th>RAM</th>
-        <th>Disk</th>
-        <th>Последние данные</th>
-        <th></th>
-    </tr>
+        <div class="nav-icon">⏻</div>
+    </aside>
 
-    {% for comp in computers %}
-    {% set last = comp.metrics|last %}
-    <tr>
-        <td>{{ comp.hostname }}</td>
+    <main class="main">
+        <h1 class="main-title">Компьютеры</h1>
 
-        {% if last %}
-            <td>{{ last.cpu_percent }}%</td>
-            <td>{{ last.memory_usage }}%</td>
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input
+                id="searchInput"
+                class="search-input"
+                type="text"
+                placeholder="например: Web-server"
+            >
+        </div>
 
-            {% if last.disk_usage > 90 %}
-                <td class="warning">{{ last.disk_usage }}%</td>
-            {% else %}
-                <td>{{ last.disk_usage }}%</td>
-            {% endif %}
+        <div class="cards-grid" id="cardsContainer">
+            {% for comp in computers %}
+                {% set last = comp.metrics|last %}
+                <div class="card {% if not last %}card-offline{% endif %}"
+                     data-name="{{ comp.hostname|lower }}">
+                    <div class="card-header">
+                        <div class="status-wrap">
+                            <div class="status-dot {% if last %}status-online{% else %}status-offline{% endif %}"></div>
+                            <div class="card-title">{{ comp.hostname }}</div>
+                        </div>
+                        <a class="arrow-link" href="{{ url_for('main.computer_detail', comp_id=comp.id) }}">→</a>
+                    </div>
 
-            <td>{{ last.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-        {% else %}
-            <td colspan="4" class="offline">Нет данных</td>
-        {% endif %}
+                    {% if last %}
+                        <div class="metric-row">
+                            <div class="metric-label">CPU:</div>
+                            <div class="bar-wrapper">
+                                <div class="bar-fill bar-cpu" style="width: {{ last.cpu_percent }}%;"></div>
+                            </div>
+                            <div class="metric-value">{{ last.cpu_percent }}%</div>
+                        </div>
 
-        <td><a href="{{ url_for('main.computer_detail', comp_id=comp.id) }}">Открыть</a></td>
-    </tr>
-    {% endfor %}
-</table>
+                        <div class="metric-row">
+                            <div class="metric-label">RAM:</div>
+                            <div class="bar-wrapper">
+                                <div class="bar-fill bar-ram" style="width: {{ last.memory_usage }}%;"></div>
+                            </div>
+                            <div class="metric-value">{{ last.memory_usage }}%</div>
+                        </div>
 
+                        <div class="metric-row">
+                            <div class="metric-label">Disk:</div>
+                            <div class="bar-wrapper">
+                                <div class="bar-fill bar-disk" style="width: {{ last.disk_usage }}%;"></div>
+                            </div>
+                            <div class="metric-value">{{ last.disk_usage }}%</div>
+                        </div>
+
+                        <div class="card-footer">
+                            Обновлено: {{ last.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                        </div>
+                    {% else %}
+                        <div class="card-footer">
+                            Нет данных от агента
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="pagination">
+            <button class="page-btn">стр. 2 →</button>
+        </div>
+    </main>
+</div>
+
+<script>
+    // Поиск по имени (фильтруем карточки по hostname)
+    const searchInput = document.getElementById('searchInput');
+    const cardsContainer = document.getElementById('cardsContainer');
+
+    searchInput.addEventListener('input', () => {
+        const value = searchInput.value.toLowerCase().trim();
+        const cards = cardsContainer.querySelectorAll('.card');
+
+        cards.forEach(card => {
+            const name = card.getAttribute('data-name') || '';
+            card.style.display = name.includes(value) ? '' : 'none';
+        });
+    });
+
+    // Автообновление только этой страницы (index.html)
+    setInterval(() => {
+        window.location.reload();
+    }, 5000); // каждые 5 секунд
+</script>
 </body>
 </html>

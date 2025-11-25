@@ -10,6 +10,10 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sysmonitor.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    # Автообновление шаблонов Jinja2
+    app.config['TEMPLATES_AUTO_RELOAD'] = True
+    app.jinja_env.auto_reload = True
+
     db.init_app(app)
 
     from .routes import main

@@ -37,3 +37,10 @@ def receive_metrics():
     db.session.commit()
 
     return jsonify({'status': 'ok'}), 200
+
+@main.route('/computer/<int:comp_id>')
+def computer_detail(comp_id):
+    comp = Computer.query.get_or_404(comp_id)
+    metrics = Metric.query.filter_by(computer_id=comp.id).order_by(Metric.id.desc()).limit(20).all()
+    return render_template('detail.html', comp=comp, metrics=metrics)
+
