@@ -57,3 +57,9 @@ python run.py
 ```
 http://127.0.0.1:5000/
 ```
+## Скрин-шоты
+
+<img width="1908" height="856" alt="image" src="https://github.com/user-attachments/assets/5ae7c516-07cf-46a4-b518-fad447fa6186" />
+<img width="1917" height="868" alt="image" src="https://github.com/user-attachments/assets/584c3da2-e745-4cbf-98d2-9a569b46ed71" />
+<img width="1718" height="829" alt="image" src="https://github.com/user-attachments/assets/a875cfaa-ad7c-4734-9560-d18c505d0d28" />
+
