@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>SysMonitor — вход</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #c9f4df;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .login-wrapper {
+            width: 420px;
+            background: #e5fff3;
+            border-radius: 18px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            padding: 40px 30px 30px;
+            text-align: center;
+        }
+        .logo-icon {
+            font-size: 56px;
+            margin-bottom: 10px;
+        }
+        .logo-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #0f4f5b;
+            margin-bottom: 30px;
+        }
+        .form-row {
+            margin-bottom: 14px;
+            text-align: left;
+        }
+        label {
+            font-size: 14px;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            margin-top: 4px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #9bcbb4;
+            font-size: 14px;
+            outline: none;
+        }
+        .btn-primary {
+            width: 60%;
+            margin-top: 18px;
+            padding: 8px;
+            border-radius: 10px;
+            border: none;
+            background: #007c89;
+            color: #fff;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        .forgot {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #555;
+        }
+        .error {
+            margin-top: 10px;
+            color: #c0392b;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+<div class="login-wrapper">
+    <div class="logo-icon">🖥️⚙️</div>
+    <div class="logo-title">SysMonitor</div>
+
+    <form method="post">
+        <div class="form-row">
+            <label for="username">логин :</label>
+            <input type="text" id="username" name="username">
+        </div>
+
+        <div class="form-row">
+            <label for="password">пароль :</label>
+            <input type="password" id="password" name="password">
+        </div>
+
+        <button type="submit" class="btn-primary">Войти</button>
+
+        <div class="forgot">Забыли пароль?</div>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+    </form>
+</div>
+</body>
+</html>
