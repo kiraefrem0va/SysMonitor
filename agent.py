@@ -21,20 +21,18 @@ class SystemMonitor:
 
         return {
             'hostname': socket.gethostname(),
-            'cpu_percent': psutil.cpu_percent(interval=1),
-            'memory_usage': psutil.virtual_memory().percent,
-            'disk_usage': round(disk_percent, 1),
+            'cpu': psutil.cpu_percent(interval=1),
+            'ram': psutil.virtual_memory().percent,
+            'disk': round(disk_percent, 1),
             'processes': len(psutil.pids()),
-            'timestamp': time.time()
         }
 
-    def send_metrics(self, server_url, token):
+    def send_metrics(self, server_url):
         metrics = self.collect_metrics()
         try:
             response = requests.post(
                 f'{server_url}/api/metrics',
                 json=metrics,
-                headers={'Authorization': f'Bearer {token}'}
             )
             print("Ответ сервера:", response.status_code, response.text)
             return response.status_code == 200
@@ -45,8 +43,10 @@ class SystemMonitor:
 
 if __name__ == '__main__':
     server = 'http://127.0.0.1:5000'
-    token = 'kira-token'
 
     monitor = SystemMonitor()
     print('Собранные метрики:', monitor.collect_metrics())
-    print('Отправка:', monitor.send_metrics(server, token))
+    
+    while True:
+        print('Отправка:', monitor.send_metrics(server))
+        time.sleep(5)

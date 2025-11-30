@@ -14,7 +14,8 @@
             display: flex;
             min-height: 100vh;
         }
-        
+
+        /* Левое меню */
         .sidebar {
             width: 200px;
             background: #b9f4d9;
@@ -24,7 +25,7 @@
             padding: 20px 15px;
         }
         .logo-text {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: bold;
             color: #0f4f5b;
             margin-bottom: 25px;
@@ -33,12 +34,12 @@
             padding: 8px 10px;
             border-radius: 10px;
             margin-bottom: 8px;
-            cursor: pointer;
         }
         .menu-item a {
             text-decoration: none;
             color: #0f4f5b;
             font-size: 14px;
+            display: block;
         }
         .menu-item.active {
             background: #8ef1c0;
@@ -60,13 +61,15 @@
             color: #0f4f5b;
         }
 
+        /* Основная часть */
         .main {
             flex: 1;
             padding: 25px 35px;
         }
         .main-title {
-            font-size: 26px;
-            margin-bottom: 20px;
+            font-family: "Times New Roman", Georgia, serif;
+            font-size: 28px;
+            margin-bottom: 22px;
             color: #1f6c4f;
             text-align: center;
         }
@@ -141,9 +144,8 @@
         <div class="menu-item">
             <a href="{{ url_for('main.index') }}">Компьютеры</a>
         </div>
-        
         <div class="menu-item">
-            <span>Настройки оповещений</span>
+            <a href="{{ url_for('main.alerts_settings') }}">Настройки оповещений</a>
         </div>
 
         <div class="menu-footer">
@@ -199,5 +201,11 @@
         </div>
     </main>
 </div>
+
+<script>
+    setInterval(() => {
+        window.location.reload();
+    }, 5000);
+</script>
 </body>
 </html>

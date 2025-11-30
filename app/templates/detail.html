@@ -1,45 +1,264 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>SysMonitor — {{ comp.hostname }}</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #e5fff3;
+        }
+        .app { display: flex; min-height: 100vh; }
 
-{% block content %}
-<h2>Компьютер: {{ comp.hostname }}</h2>
+        .sidebar {
+            width: 200px;
+            background: #b9f4d9;
+            border-right: 2px solid #77c8a5;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 15px;
+        }
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0f4f5b;
+            margin-bottom: 25px;
+        }
+        .menu-item {
+            padding: 8px 10px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        .menu-item a {
+            text-decoration: none;
+            color: #0f4f5b;
+            font-size: 14px;
+            display: block;
+        }
+        .menu-item.active { background: #8ef1c0; font-weight: bold; }
+        .menu-footer { margin-top: auto; }
+        .logout-btn {
+            margin-top: 20px;
+            padding: 6px 10px;
+            border-radius: 10px;
+            background: #ffffff;
+            border: 1px solid #8abca0;
+            text-align: center;
+        }
+        .logout-btn a { text-decoration: none; color: #0f4f5b; }
 
-<h3>Последняя метрика</h3>
+        .main { flex: 1; padding: 25px 35px; }
+        .main-title {
+            font-size: 26px;
+            margin-bottom: 10px;
+            color: #1f6c4f;
+            text-align: center;
+        }
+        .subtitle {
+            font-size: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
 
-{% if metrics %}
-    {% set last = metrics[0] %}
-    <ul>
-        <li><strong>CPU:</strong> {{ last.cpu_percent }}%</li>
-        <li><strong>RAM:</strong> {{ last.memory_usage }}%</li>
-        <li><strong>Disk:</strong> {{ last.disk_usage }}%</li>
-        <li><strong>Processes:</strong> {{ last.processes }}</li>
-    </ul>
-{% else %}
-    <p>Пока нет данных.</p>
-{% endif %}
+        .top-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1.3fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 16px 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .card-title { font-size: 16px; margin-bottom: 10px; font-weight: bold; }
+        .info-row { margin-bottom: 4px; font-size: 14px; }
+        .info-label { font-weight: bold; }
 
-<hr>
+        .metric-row {
+            display: flex;
+            align-items: center;
+            margin: 6px 0;
+            font-size: 13px;
+        }
+        .metric-label { width: 50px; font-weight: bold; }
+        .bar-wrapper {
+            flex: 1;
+            margin-left: 4px;
+            background: #dedede;
+            border-radius: 8px;
+            height: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+        .bar-fill {
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+        }
+        .bar-cpu { background: #a9ff00; }
+        .bar-ram { background: #ffe600; }
+        .bar-disk { background: #ff3b61; }
+        .metric-value {
+            width: 46px;
+            text-align: right;
+            font-size: 12px;
+            margin-left: 6px;
+        }
 
-<h3>Последние 20 метрик</h3>
-<table>
-    <tr>
-        <th>ID</th>
-        <th>CPU</th>
-        <th>RAM</th>
-        <th>Disk</th>
-        <th>Processes</th>
-        <th>Timestamp</th>
-    </tr>
+        .tables-row {
+            display: grid;
+            grid-template-columns: 1.1fr 1.3fr;
+            gap: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        th, td {
+            padding: 6px 5px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: left;
+        }
+        th { background: #f5f5f5; }
 
-    {% for m in metrics %}
-    <tr>
-        <td>{{ m.id }}</td>
-        <td>{{ m.cpu_percent }}%</td>
-        <td>{{ m.memory_usage }}%</td>
-        <td>{{ m.disk_usage }}%</td>
-        <td>{{ m.processes }}</td>
-        <td>{{ m.timestamp.strftime('%H:%M:%S') }}</td>
-    </tr>
-    {% endfor %}
-</table>
+        .placeholder { font-size: 12px; color: #777; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="logo-text">SysMonitor</div>
 
-{% endblock %}
+        <div class="menu-item">
+            <a href="{{ url_for('main.dashboard') }}">Главная</a>
+        </div>
+        <div class="menu-item active">
+            <a href="{{ url_for('main.index') }}">Компьютеры</a>
+        </div>
+        <div class="menu-item">
+            <a href="{{ url_for('main.alerts_settings') }}">Настройки оповещений</a>
+        </div>
+
+        <div class="menu-footer">
+            <div class="logout-btn">
+                <a href="{{ url_for('main.logout') }}">Выйти</a>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <h1 class="main-title">Компьютеры</h1>
+        <div class="subtitle">{{ comp.hostname }}</div>
+
+        {% if metrics %}
+            {% set last = metrics[0] %}
+        {% endif %}
+
+        <div class="top-grid">
+            <div class="card">
+                <div class="card-title">Общая информация</div>
+                <div class="info-row">
+                    <span class="info-label">ID:</span> {{ comp.id }}
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Имя хоста:</span> {{ comp.hostname }}
+                </div>
+                {% if last %}
+                    <div class="info-row">
+                        <span class="info-label">Процессов:</span> {{ last.processes }}</div>
+                    <div class="info-row">
+                        <span class="info-label">Последнее обновление:</span>
+                        {{ last.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                    </div>
+                {% else %}
+                    <div class="info-row placeholder">Данных от агента пока нет.</div>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <div class="card-title">Графики (последняя метрика)</div>
+                {% if last %}
+                    <div class="metric-row">
+                        <div class="metric-label">CPU</div>
+                        <div class="bar-wrapper">
+                            <div class="bar-fill bar-cpu" data-width="{{ last.cpu_percent or 0 }}"></div>
+                        </div>
+                        <div class="metric-value">{{ last.cpu_percent or 0 }}%</div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="metric-label">RAM</div>
+                        <div class="bar-wrapper">
+                            <div class="bar-fill bar-ram" data-width="{{ last.memory_usage or 0 }}"></div>
+                        </div>
+                        <div class="metric-value">{{ last.memory_usage or 0 }}%</div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="metric-label">Disk</div>
+                        <div class="bar-wrapper">
+                            <div class="bar-fill bar-disk" data-width="{{ last.disk_usage or 0 }}"></div>
+                        </div>
+                        <div class="metric-value">{{ last.disk_usage or 0 }}%</div>
+                    </div>
+                {% else %}
+                    <p class="placeholder">Нет данных для отображения графиков.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="tables-row" style="margin-top: 20px;">
+            <div class="card">
+                <div class="card-title">Процессы</div>
+                {% if last %}
+                    <p class="placeholder">
+                        Всего процессов: <strong>{{ last.processes }}</strong>.<br>
+                        Подробный список процессов в текущей версии не сохраняется в БД.
+                    </p>
+                {% else %}
+                    <p class="placeholder">Нет данных о процессах.</p>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <div class="card-title">Последние 20 метрик</div>
+                {% if metrics %}
+                    <table>
+                        <tr>
+                            <th>ID</th>
+                            <th>CPU, %</th>
+                            <th>RAM, %</th>
+                            <th>Disk, %</th>
+                            <th>Proc</th>
+                            <th>Время</th>
+                        </tr>
+                        {% for m in metrics %}
+                            <tr>
+                                <td>{{ m.id }}</td>
+                                <td>{{ m.cpu_percent }}</td>
+                                <td>{{ m.memory_usage }}</td>
+                                <td>{{ m.disk_usage }}</td>
+                                <td>{{ m.processes }}</td>
+                                <td>{{ m.timestamp.strftime('%H:%M:%S') }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% else %}
+                    <p class="placeholder">Пока нет сохранённых метрик.</p>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    document.querySelectorAll('.bar-fill').forEach(el => {
+        const w = el.getAttribute('data-width');
+        if (w) el.style.width = w + '%';
+    });
+    setInterval(() => { window.location.reload(); }, 5000);
+</script>
+</body>
+</html>

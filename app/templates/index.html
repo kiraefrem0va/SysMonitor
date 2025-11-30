@@ -17,7 +17,7 @@
             min-height: 100vh;
         }
 
-        /* Левое меню */
+        /* Левое меню (узкая вертикальная панель) */
         .sidebar {
             width: 80px;
             background: #b9f4d9;
@@ -30,10 +30,10 @@
         .logo {
             writing-mode: vertical-rl;
             transform: rotate(180deg);
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
             color: #1f6c4f;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         .nav-icon {
             width: 40px;
@@ -48,6 +48,16 @@
             font-size: 18px;
             color: #4b7c63;
             cursor: pointer;
+            text-decoration: none;
+            transition: background 0.15s, border-color 0.15s, transform 0.1s;
+        }
+        .nav-icon:hover {
+            transform: translateY(-1px);
+            border-color: #6abf97;
+        }
+        .nav-icon-active {
+            background: #8ef1c0;
+            border-color: #4fb68a;
         }
         .nav-icon:last-child {
             margin-top: auto;
@@ -56,18 +66,19 @@
         /* Основная часть */
         .main {
             flex: 1;
-            padding: 20px 30px;
+            padding: 25px 40px;
         }
         .main-title {
             text-align: center;
-            font-size: 28px;
-            margin: 5px 0 20px;
+            font-family: "Times New Roman", Georgia, serif;
+            font-size: 30px;
+            margin: 5px 0 18px;
             color: #1f6c4f;
         }
 
         /* Поиск */
         .search-wrapper {
-            max-width: 380px;
+            max-width: 420px;
             margin: 0 auto 25px;
             position: relative;
         }
@@ -174,15 +185,10 @@
             top: 0;
             bottom: 0;
         }
-        .bar-cpu {
-            background: #a9ff00;
-        }
-        .bar-ram {
-            background: #ffe600;
-        }
-        .bar-disk {
-            background: #ff3b61;
-        }
+        .bar-cpu { background: #a9ff00; }
+        .bar-ram { background: #ffe600; }
+        .bar-disk { background: #ff3b61; }
+
         .metric-value {
             width: 38px;
             text-align: right;
@@ -218,12 +224,23 @@
     <aside class="sidebar">
         <div class="logo">SysMonitor</div>
 
-        <div class="nav-icon">⚙️</div>
-        <div class="nav-icon">💻</div>
-        <div class="nav-icon">💬</div>
-        <div class="nav-icon">💡</div>
+        <a href="{{ url_for('main.dashboard') }}"
+           class="nav-icon"
+           title="Главная панель">⚙️</a>
 
-        <div class="nav-icon">⏻</div>
+        <a href="{{ url_for('main.index') }}"
+           class="nav-icon nav-icon-active"
+           title="Компьютеры">💻</a>
+
+        <a href="{{ url_for('main.alerts_settings') }}"
+           class="nav-icon"
+           title="Настройки оповещений">💬</a>
+
+        <div class="nav-icon" title="Подсказки / идеи">💡</div>
+
+        <a href="{{ url_for('main.logout') }}"
+           class="nav-icon"
+           title="Выход">⏻</a>
     </aside>
 
     <main class="main">
@@ -296,7 +313,7 @@
 </div>
 
 <script>
-    // Поиск по имени (фильтруем карточки по hostname)
+    // поиск по имени (фильтруем карточки по hostname)
     const searchInput = document.getElementById('searchInput');
     const cardsContainer = document.getElementById('cardsContainer');
 
@@ -310,10 +327,10 @@
         });
     });
 
-    // Автообновление только этой страницы (index.html)
+    // автообновление
     setInterval(() => {
         window.location.reload();
-    }, 5000); // каждые 5 секунд
+    }, 5000);
 </script>
 </body>
 </html>

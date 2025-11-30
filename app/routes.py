@@ -5,6 +5,18 @@ from . import db
 
 main = Blueprint('main', __name__)
 
+# значения по умолчанию
+DEFAULT_CPU_THRESHOLD = 85
+DEFAULT_RAM_THRESHOLD = 80
+DEFAULT_DISK_THRESHOLD = 90
+
+def get_thresholds():
+    return {
+        'cpu': session.get('cpu_threshold', DEFAULT_CPU_THRESHOLD),
+        'ram': session.get('ram_threshold', DEFAULT_RAM_THRESHOLD),
+        'disk': session.get('disk_threshold', DEFAULT_DISK_THRESHOLD),
+    }
+
 def login_required(view_func):
     @wraps(view_func)
     def wrapper(*args, **kwargs):
@@ -50,6 +62,8 @@ def dashboard():
     alerts = []
     cpu_values = []
 
+    thresholds = get_thresholds()
+
     for comp in computers:
         last = comp.metrics[-1] if comp.metrics else None
         if not last:
@@ -85,6 +99,41 @@ def dashboard():
         problems_count=problems_count,
         avg_cpu=avg_cpu,
         alerts=alerts,
+        thresholds=thresholds
+    )
+
+@main.route('/alerts-settings', methods=['GET', 'POST'])
+@login_required
+def alerts_settings():
+    thresholds = get_thresholds()
+    message = None
+    error = None
+
+    if request.method == 'POST':
+        try:
+            cpu = int(request.form.get('cpu_threshold', thresholds['cpu']))
+            ram = int(request.form.get('ram_threshold', thresholds['ram']))
+            disk = int(request.form.get('disk_threshold', thresholds['disk']))
+
+            # ограничение
+            cpu = max(0, min(cpu, 100))
+            ram = max(0, min(ram, 100))
+            disk = max(0, min(disk, 100))
+
+            session['cpu_threshold'] = cpu
+            session['ram_threshold'] = ram
+            session['disk_threshold'] = disk
+
+            thresholds = {'cpu': cpu, 'ram': ram, 'disk': disk}
+            message = "Настройки сохранены"
+        except ValueError:
+            error = "Введите целые числа от 0 до 100"
+
+    return render_template(
+        'alerts_settings.html',
+        thresholds=thresholds,
+        message=message,
+        error=error,
     )
 
 @main.route('/computers')

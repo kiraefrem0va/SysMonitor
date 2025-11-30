@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>SysMonitor — настройки оповещений</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #e5fff3;
+        }
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 200px;
+            background: #b9f4d9;
+            border-right: 2px solid #77c8a5;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 15px;
+        }
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0f4f5b;
+            margin-bottom: 25px;
+        }
+        .menu-item {
+            padding: 8px 10px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        .menu-item a {
+            text-decoration: none;
+            color: #0f4f5b;
+            font-size: 14px;
+            display: block;
+        }
+        .menu-item.active {
+            background: #8ef1c0;
+            font-weight: bold;
+        }
+        .menu-footer {
+            margin-top: auto;
+        }
+        .logout-btn {
+            margin-top: 20px;
+            padding: 6px 10px;
+            border-radius: 10px;
+            background: #ffffff;
+            border: 1px solid #8abca0;
+            text-align: center;
+        }
+        .logout-btn a {
+            text-decoration: none;
+            color: #0f4f5b;
+        }
+
+        /* Основная часть */
+        .main {
+            flex: 1;
+            padding: 25px 35px;
+        }
+        .main-title {
+            font-size: 26px;
+            margin-bottom: 20px;
+            color: #1f6c4f;
+            text-align: center;
+        }
+        .settings-card {
+            max-width: 480px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .settings-row {
+            margin-bottom: 12px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 6px 8px;
+            border-radius: 8px;
+            border: 1px solid #9bcbb4;
+            font-size: 14px;
+        }
+        .hint {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .btn-save {
+            margin-top: 10px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: none;
+            background: #007c89;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .msg {
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        .msg.ok {
+            color: #1e9f47;
+        }
+        .msg.err {
+            color: #d11f3f;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="logo-text">SysMonitor</div>
+
+        <div class="menu-item">
+            <a href="{{ url_for('main.dashboard') }}">Главная</a>
+        </div>
+        <div class="menu-item">
+            <a href="{{ url_for('main.index') }}">Компьютеры</a>
+        </div>
+        <div class="menu-item active">
+            <a href="{{ url_for('main.alerts_settings') }}">Настройки оповещений</a>
+        </div>
+
+        <div class="menu-footer">
+            <div class="logout-btn">
+                <a href="{{ url_for('main.logout') }}">Выйти</a>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <h1 class="main-title">Настройки оповещений</h1>
+
+        <div class="settings-card">
+            <p class="hint">
+                Укажите пороговые значения загрузки ресурсов (в процентах), 
+                при превышении которых компьютер будет считаться «проблемным».
+            </p>
+
+            <form method="post">
+                <div class="settings-row">
+                    <label for="cpu_threshold">Порог загрузки CPU, %</label>
+                    <input type="number" id="cpu_threshold" name="cpu_threshold"
+                           min="0" max="100"
+                           value="{{ thresholds.cpu }}">
+                </div>
+
+                <div class="settings-row">
+                    <label for="ram_threshold">Порог загрузки RAM, %</label>
+                    <input type="number" id="ram_threshold" name="ram_threshold"
+                           min="0" max="100"
+                           value="{{ thresholds.ram }}">
+                </div>
+
+                <div class="settings-row">
+                    <label for="disk_threshold">Порог заполнения диска, %</label>
+                    <input type="number" id="disk_threshold" name="disk_threshold"
+                           min="0" max="100"
+                           value="{{ thresholds.disk }}">
+                </div>
+
+                <button type="submit" class="btn-save">Сохранить</button>
+
+                {% if message %}
+                    <div class="msg ok">{{ message }}</div>
+                {% endif %}
+                {% if error %}
+                    <div class="msg err">{{ error }}</div>
+                {% endif %}
+            </form>
+        </div>
+    </main>
+</div>
+</body>
+</html>
