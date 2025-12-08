@@ -327,10 +327,19 @@
         });
     });
 
-    // автообновление
-    setInterval(() => {
+    function maybeReload() {
+        if (document.activeElement === searchInput) {
+            return;
+        }
+
+        if (searchInput.value.trim() !== '') {
+            return;
+        }
+
         window.location.reload();
-    }, 5000);
+    }
+
+    setInterval(maybeReload, 5000);
 </script>
 </body>
 </html>

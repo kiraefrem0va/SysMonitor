@@ -17,6 +17,8 @@ def get_thresholds():
         'disk': session.get('disk_threshold', DEFAULT_DISK_THRESHOLD),
     }
 
+main = Blueprint('main', __name__)
+
 def login_required(view_func):
     @wraps(view_func)
     def wrapper(*args, **kwargs):
@@ -74,13 +76,13 @@ def dashboard():
 
         problems_for_comp = []
 
-        if last.disk_usage is not None and last.disk_usage >= 90:
+        if last.disk_usage is not None and last.disk_usage >= thresholds['disk']:
             problems_for_comp.append(f"Диск: {int(last.disk_usage)}% заполнен")
 
-        if last.memory_usage is not None and last.memory_usage >= 80:
+        if last.memory_usage is not None and last.memory_usage >= thresholds['ram']:
             problems_for_comp.append(f"Высокая загрузка RAM: {int(last.memory_usage)}%")
 
-        if last.cpu_percent is not None and last.cpu_percent >= 85:
+        if last.cpu_percent is not None and last.cpu_percent >= thresholds['cpu']:
             problems_for_comp.append(f"Высокая загрузка CPU: {int(last.cpu_percent)}%")
 
         if problems_for_comp:
@@ -126,6 +128,8 @@ def alerts_settings():
 
             thresholds = {'cpu': cpu, 'ram': ram, 'disk': disk}
             message = "Настройки сохранены"
+
+            return redirect(url_for('main.alerts_settings'))
         except ValueError:
             error = "Введите целые числа от 0 до 100"
 
