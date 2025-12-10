@@ -3,3 +3,15 @@
 /dist/
 /build/
 *.spec
+# LaTeX временные файлы
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.lof
+*.lot
+# Сгенерированная документация Doxygen
+docs/doxygen/

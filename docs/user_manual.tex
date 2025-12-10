@@ -1,0 +1,317 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue
+}
+
+\usepackage{enumitem}
+
+\title{Инструкция пользователя системы мониторинга рабочих станций SysMonitor}
+\author{Студентка группы ИКБО-30-24 Ефремова Кира}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Введение}
+
+Настоящая инструкция пользователя описывает порядок установки и эксплуатации
+системы мониторинга рабочих станций \textbf{SysMonitor}. Система предназначена
+для сбора и отображения информации о состоянии удалённых компьютеров, а также
+для формирования предупреждений при превышении заданных пороговых значений
+ресурсов (CPU, RAM, дисковое пространство).
+
+Документ ориентирован на системных администраторов и технических специалистов,
+которые разворачивают сервер SysMonitor и устанавливают агент на рабочие станции
+пользователей.
+
+\section{Назначение и состав системы}
+
+\subsection{Назначение системы}
+
+Система SysMonitor решает следующие задачи:
+
+\begin{itemize}[noitemsep]
+    \item централизованный сбор метрик нагрузки с рабочих станций;
+    \item визуализация данных в виде сводной панели и списка компьютеров;
+    \item отображение детализированной информации по каждому компьютеру;
+    \item фиксация предупреждений при превышении пороговых значений;
+    \item упрощение диагностики проблем производительности.
+\end{itemize}
+
+\subsection{Состав системы}
+
+Система состоит из следующих компонентов:
+
+\begin{enumerate}[noitemsep]
+    \item \textbf{Сервер SysMonitor} --- веб-приложение на базе Flask с базой данных SQLite, предоставляющее веб-интерфейс администратора и REST API для приёма метрик.
+    \item \textbf{Агент мониторинга} (\texttt{agent.py}) --- скрипт на Python, устанавливаемый на рабочую станцию и периодически отправляющий метрики на сервер.
+    \item \textbf{Графическое приложение агента} (\texttt{agent\_gui.py}) --- десктоп-приложение с графическим интерфейсом, позволяющее запускать и останавливать мониторинг без использования консоли.
+\end{enumerate}
+
+\section{Системные требования}
+
+\subsection{Требования к серверу}
+
+\begin{itemize}[noitemsep]
+    \item Операционная система: Windows 10/11 или Linux.
+    \item Установленный Python версии 3.10 и выше.
+    \item Доступ к сети, общий для сервера и рабочих станций.
+\end{itemize}
+
+\subsection{Требования к рабочей станции}
+
+При использовании агента в виде \texttt{.exe}-файла:
+
+\begin{itemize}[noitemsep]
+    \item Операционная система: Windows 10/11.
+    \item Доступ к серверу SysMonitor по сети (по IP-адресу или имени хоста).
+\end{itemize}
+
+При запуске \texttt{agent.py} напрямую:
+
+\begin{itemize}[noitemsep]
+    \item Операционная система: Windows или Linux.
+    \item Установленный Python, библиотеки \texttt{psutil}, \texttt{shutil} и \texttt{requests}.
+\end{itemize}
+
+\section{Установка и запуск серверной части}
+
+\subsection{Клонирование репозитория и подготовка окружения}
+
+На серверной машине необходимо:
+
+\begin{enumerate}
+    \item Склонировать репозиторий SysMonitor:
+    \begin{verbatim}
+git clone https://github.com/kiraefrem0va/SysMonitor.git
+cd SysMonitor
+    \end{verbatim}
+
+    \item Установить зависимости:
+    \begin{verbatim}
+pip install -r requirements.txt
+    \end{verbatim}
+\end{enumerate}
+
+\subsection{Запуск сервера}
+
+Сервер запускается командой:
+
+\begin{verbatim}
+python run.py
+\end{verbatim}
+
+В типичном случае приложение доступно по адресу:
+
+\begin{verbatim}
+http://127.0.0.1:5000
+\end{verbatim}
+
+При запуске с параметром \texttt{host='0.0.0.0'} сервер становится доступен
+по IP-адресу машины в локальной сети, например:
+
+\begin{verbatim}
+http://192.168.1.176:5000
+\end{verbatim}
+
+\section{Установка и запуск агента}
+
+\subsection{Запуск консольного агента (agent.py)}
+
+Консольный агент может использоваться для тестирования или в простых сценариях.
+Необходимо:
+
+\begin{enumerate}
+    \item Скопировать файл \texttt{agent.py} на рабочую станцию.
+    \item Открыть файл в текстовом редакторе и указать корректный адрес сервера:
+    \begin{verbatim}
+server = "http://192.168.1.176:5000"
+    \end{verbatim}
+    \item Запустить агент:
+    \begin{verbatim}
+python agent.py
+    \end{verbatim}
+\end{enumerate}
+
+После этого агент будет периодически собирать метрики и отправлять их на сервер.
+
+\subsection{Запуск графического агента (agent\_gui.py / .exe)}
+
+Для удобства установки на рабочие станции разработано графическое приложение
+SysMonitor Agent. Приложение позволяет:
+
+\begin{itemize}[noitemsep]
+    \item указать адрес сервера SysMonitor;
+    \item задать интервал отправки метрик;
+    \item запустить и остановить мониторинг;
+    \item наблюдать статус отправки данных.
+\end{itemize}
+
+\subsubsection*{Работа с .exe-файлом}
+
+Для использования на машинах без установленного Python возможно создание
+исполняемого файла (\texttt{agent\_gui.exe}) с помощью PyInstaller. В этом случае
+пользователю необходимо лишь:
+
+\begin{enumerate}
+    \item Скопировать файл \texttt{agent\_gui.exe} на рабочую станцию.
+    \item Запустить \texttt{agent\_gui.exe} двойным щелчком.
+    \item Ввести адрес сервера и нажать кнопку <<Запустить мониторинг>>.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/agentgui.png}
+    \caption{GUI агента SysMonitor}
+\end{figure}
+
+\section{Работа с веб-интерфейсом}
+
+\subsection{Авторизация}
+
+При переходе на адрес сервера SysMonitor в браузере пользователь видит форму
+авторизации. В базовой конфигурации для тестовых целей используется простой
+логин/пароль, заданный в серверном приложении (\texttt{admin/admin}).
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/login.png}
+    \caption{Окно авторизации в системе SysMonitor}
+\end{figure}
+
+После успешной авторизации пользователь перенаправляется на главную панель.
+
+\subsection{Главная панель}
+
+Главная панель отображает сводную информацию:
+
+\begin{itemize}[noitemsep]
+    \item количество подключённых компьютеров;
+    \item количество активных проблем (предупреждений);
+    \item среднюю загрузку CPU по всем рабочим станциям;
+    \item таблицу текущих предупреждений.
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/dashboard.png}
+    \caption{Главная панель администратора SysMonitor}
+\end{figure}
+
+\subsection{Список компьютеров}
+
+Раздел <<Компьютеры>> отображает карточки всех машин, от которых поступают
+метрики. Для каждой машины показываются:
+
+\begin{itemize}[noitemsep]
+    \item имя хоста;
+    \item текущая загрузка CPU;
+    \item использование оперативной памяти;
+    \item заполненность диска;
+    \item время последнего обновления.
+\end{itemize}
+
+В верхней части страницы расположен поисковый фильтр по имени компьютера.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/computers.png}
+    \caption{Список компьютеров в системе SysMonitor}
+\end{figure}
+
+\subsection{Детальная информация о компьютере}
+
+При переходе по ссылке <<Открыть>> или клику по имени хоста пользователь попадает
+на детальную страницу компьютера. На ней отображаются:
+
+\begin{itemize}[noitemsep]
+    \item последняя полученная метрика;
+    \item история последних измерений (например, 20 последних записей);
+    \item числовые значения CPU, RAM, диска и количества процессов.
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/computerdetail.png}
+    \caption{Детальная информация об удалённом компьютере в системе SysMonitor}
+\end{figure}
+
+\section{Настройки оповещений}
+
+\subsection{Пороговые значения}
+
+В разделе <<Настройки оповещений>> администратор может задать пороговые значения,
+при превышении которых формируются предупреждения.
+
+\subsection{Применение порогов в системе}
+
+Пороговые значения влияют на формирование предупреждений в главной панели.
+Пример их использования приведён в таблице~\ref{tab:thresholds}.
+
+\begin{table}[h]
+    \centering
+    \caption{Пример использования пороговых значений в SysMonitor}
+    \label{tab:thresholds}
+    \begin{tabular}{|>{\raggedright\arraybackslash}p{4cm}|>{\centering\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{6cm}|}
+        \hline
+        \textbf{Метрика} & \textbf{Порог} & \textbf{Описание предупреждения} \\
+        \hline
+        Высокая загрузка CPU & 85\% & \\
+        \hline
+        Высокая загрузка RAM & 80\% & \\
+        \hline
+        Диск: & 90\% & заполнен \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/alerts.png}
+    \caption{Настройка пороговых значений}
+\end{figure}
+
+\section{Заключение}
+
+В данной инструкции пользователя описаны назначение и состав системы SysMonitor,
+процедура установки серверной части и агента, а также порядок работы с
+пользовательским интерфейсом. Система может быть использована в учебных целях
+для демонстрации принципов мониторинга рабочих станций, а также служить
+основой для дальнейшего расширения функциональности и интеграции с другими
+сервисами.
+
+\section*{Список использованных источников}
+
+\begin{thebibliography}{9}
+\bibitem{flask}
+Документация проекта Flask. URL:
+\url{https://flask.palletsprojects.com/}
+
+\bibitem{psutil}
+Документация библиотеки psutil. URL:
+\url{https://psutil.readthedocs.io/}
+
+\bibitem{pytest}
+Документация по pytest. URL:
+\url{https://docs.pytest.org/}
+\end{thebibliography}
+
+\end{document}
