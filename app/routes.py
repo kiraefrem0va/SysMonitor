@@ -11,6 +11,16 @@ DEFAULT_RAM_THRESHOLD = 80
 DEFAULT_DISK_THRESHOLD = 90
 
 def get_thresholds():
+    """
+    Получить актуальные пороговые значения оповещений.
+
+    Считывает значения порогов для CPU, RAM и диска из серверной сессии
+    пользователя. Если пользователь ещё не настраивал пороги, возвращаются
+    значения по умолчанию.
+
+    :return: словарь с ключами "cpu", "ram", "disk" и значениями в процентах.
+    :rtype: dict
+    """
     return {
         'cpu': session.get('cpu_threshold', DEFAULT_CPU_THRESHOLD),
         'ram': session.get('ram_threshold', DEFAULT_RAM_THRESHOLD),
@@ -20,8 +30,29 @@ def get_thresholds():
 main = Blueprint('main', __name__)
 
 def login_required(view_func):
+    """
+    Декоратор для защиты маршрутов, требующих авторизации пользователя.
+
+    Проверяет, авторизован ли пользователь в текущей сессии.
+    Если пользователь не вошёл в систему, происходит перенаправление
+    на страницу входа. В противном случае вызывается исходная функция
+    обработчика маршрута.
+
+    Используется для ограничения доступа к страницам.
+
+    :param view_func: функция-обработчик маршрута Flask
+    :type view_func: callable
+    :return: обёрнутая функция с проверкой авторизации
+    :rtype: callable
+    """
     @wraps(view_func)
     def wrapper(*args, **kwargs):
+        """
+        Внутренняя функция-обёртка.
+
+        Проверяет наличие флага 'logged_in' в сессии пользователя.
+        При отсутствии флага выполняется перенаправление на страницу логина.
+        """
         if not session.get('logged_in'):
             return redirect(url_for('main.login'))
         return view_func(*args, **kwargs)
@@ -30,7 +61,12 @@ def login_required(view_func):
 @main.route('/', methods=['GET', 'POST'])
 @main.route('/login', methods=['GET', 'POST'])
 def login():
-    # если уже авторизованы — сразу на главную панель
+    """
+    Страница входа в систему SysMonitor.
+
+    Обрабатывает ввод логина и пароля, устанавливает признак авторизации в сессии.
+    В учебных целях используется упрощённая проверка учётных данных (admin/admin).
+    """
     if session.get('logged_in'):
         return redirect(url_for('main.dashboard'))
 
@@ -40,7 +76,6 @@ def login():
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
 
-        # данные для админа
         if username == 'admin' and password == 'admin':
             session['logged_in'] = True
             session['username'] = username
@@ -52,12 +87,26 @@ def login():
 
 @main.route('/logout')
 def logout():
+    """
+    Выход пользователя из системы.
+
+    Очищает серверную сессию пользователя, удаляя признаки авторизации,
+    после чего перенаправляет на страницу входа.
+    
+    :return: перенаправление на маршрут входа (login).
+    """
     session.clear()
     return redirect(url_for('main.login'))
 
 @main.route('/dashboard')
 @login_required
 def dashboard():
+    """
+    Главная панель администратора.
+
+    Отображает общее количество компьютеров, число проблемных машин,
+    среднюю загрузку CPU и список активных предупреждений.
+    """
     computers = Computer.query.all()
     total = len(computers)
 
@@ -107,6 +156,12 @@ def dashboard():
 @main.route('/alerts-settings', methods=['GET', 'POST'])
 @login_required
 def alerts_settings():
+    """
+    Страница настройки пороговых значений оповещений.
+
+    Позволяет задать пороги для CPU, RAM и диска. Значения сохраняются в сессии
+    и используются при формировании списка предупреждений на главной панели.
+    """
     thresholds = get_thresholds()
     message = None
     error = None
@@ -143,11 +198,43 @@ def alerts_settings():
 @main.route('/computers')
 @login_required
 def index():
+    """
+    Страница списка компьютеров.
+
+    Показывает все зарегистрированные рабочие станции с последними метриками,
+    позволяет перейти к детальному просмотру выбранного компьютера.
+    """
     computers = Computer.query.all()
     return render_template('index.html', computers=computers)
 
 @main.route('/api/metrics', methods=['POST'])
 def receive_metrics():
+    """
+    Приём системных метрик от удалённого агента SysMonitor.
+
+    Ожидает POST-запрос с JSON-объектом, содержащим основные параметры
+    рабочей станции: загрузку CPU, использование RAM, заполненность диска,
+    количество процессов и имя компьютера (hostname). Если компьютер ранее
+    не был зарегистрирован в системе, создаётся новая запись в базе данных.
+
+    После успешного приёма создаётся объект Metric, связанный с соответствующим
+    компьютером, и сохраняется в базе данных.
+
+    Формат входящего JSON:
+        {
+            "hostname": "DESKTOP-01",
+            "cpu": 23.5,
+            "ram": 58.0,
+            "disk": 72.1,
+            "processes": 142
+        }
+
+    Ошибки:
+        - 400: если JSON отсутствует или отсутствует обязательное поле hostname.
+
+    :return: JSON-ответ {"status": "ok"} при успешном сохранении метрик.
+    :rtype: flask.Response
+    """
     data = request.json
     if not data:
         return jsonify({'error': 'invalid json'}), 400
@@ -178,6 +265,12 @@ def receive_metrics():
 @main.route('/computer/<int:comp_id>')
 @login_required
 def computer_detail(comp_id):
+    """
+    Детальная страница компьютера.
+
+    :param comp_id: идентификатор компьютера в базе данных.
+    :type comp_id: int
+    """
     comp = Computer.query.get_or_404(comp_id)
     
     metrics = (

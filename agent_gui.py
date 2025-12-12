@@ -1,3 +1,12 @@
+"""
+Графический клиентский агент SysMonitor.
+
+Модуль содержит десктоп-приложение на Tkinter, которое запускается на
+удалённой рабочей станции, периодически собирает метрики через SystemMonitor
+и отправляет их на сервер SysMonitor. Интерфейс стилистически повторяет
+веб-интерфейс системы.
+
+"""
 
 import threading
 import time
@@ -5,30 +14,55 @@ import tkinter as tk
 from tkinter import messagebox
 from agent import SystemMonitor  
 
-BG_MAIN = "#e5fff3"
-BG_SIDEBAR = "#b9f4d9"
-BG_CARD = "#ffffff"
-ACCENT = "#1f6c4f"
-BUTTON_BG = "#8ef1c0"
-BUTTON_BG_DISABLED = "#cdeedc"
-BUTTON_TEXT = "#0f4f5b"
-STATUS_OK = "#1e9f47"
-STATUS_ERROR = "#d11f3f"
-STATUS_NEUTRAL = "#777777"
-STATUS_RUNNING = "#1f6c4f"
+# Цветовая палитра интерфейса приложения агента SysMonitor
+BG_MAIN = "#e5fff3"           # основной фон окна приложения
+BG_SIDEBAR = "#b9f4d9"        # фон боковой панели
+BG_CARD = "#ffffff"           # фон основной карточки с настройками
+ACCENT = "#1f6c4f"            # акцентный зелёный цвет заголовков и элементов
+
+BUTTON_BG = "#8ef1c0"         # фон активной кнопки
+BUTTON_BG_DISABLED = "#cdeedc"  # фон неактивной (заблокированной) кнопки
+BUTTON_TEXT = "#0f4f5b"       # цвет текста на кнопках
+
+STATUS_OK = "#1e9f47"         # цвет статуса «успешно»
+STATUS_ERROR = "#d11f3f"      # цвет статуса «ошибка»
+STATUS_NEUTRAL = "#777777"    # нейтральный цвет статуса
+STATUS_RUNNING = "#1f6c4f"    # цвет статуса «мониторинг запущен»
+
 
 
 class AgentApp:
+    """
+    Графический интерфейс агента SysMonitor.
+
+    Основные атрибуты:
+        root (tk.Tk): корневое окно Tkinter.
+        monitor (SystemMonitor): объект, который собирает и отправляет метрики.
+        running (bool): флаг, показывающий, запущен ли сейчас цикл мониторинга.
+        thread (threading.Thread | None): фоновый поток, в котором идёт отправка данных.
+        server_entry (tk.Entry): поле ввода адреса сервера SysMonitor.
+        interval_entry (tk.Entry): поле ввода интервала отправки метрик в секундах.
+        status_label (tk.Label): надпись с текстовым статусом.
+        status_dot (tk.Label): цветная точка-индикатор статуса.
+        start_btn (tk.Button): кнопка запуска мониторинга.
+        stop_btn (tk.Button): кнопка остановки мониторинга.
+    """
     def __init__(self, root):
+        """
+        Инициализация окна агента и построение интерфейса.
+
+        :param root: корневое окно Tkinter.
+        :type root: tk.Tk
+        """
         self.root = root
         self.root.title("SysMonitor Agent")
         self.root.configure(bg=BG_MAIN)
         self.root.geometry("520x260")
         self.root.resizable(False, False)
 
-        self.monitor = SystemMonitor()
-        self.running = False
-        self.thread = None
+        self.monitor = SystemMonitor() # объект для работы с метриками
+        self.running = False # флаг состояния мониторинга
+        self.thread = None # фоновый поток, изначально отсутствует
 
         sidebar = tk.Frame(
             root,
@@ -168,6 +202,18 @@ class AgentApp:
         card.columnconfigure(1, weight=1)
 
     def loop(self, server_url, interval):
+        """
+        Цикл отправки метрик на сервер.
+
+        Запускается в отдельном потоке и пока флаг self.running установлен
+        в True, периодически вызывает SystemMonitor.send_metrics(), обновляя
+        статус в интерфейсе.
+
+        :param server_url: адрес сервера SysMonitor.
+        :type server_url: str
+        :param interval: интервал отправки в секундах.
+        :type interval: int
+        """
         while self.running:
             ok = self.monitor.send_metrics(server_url)
             if ok:
@@ -177,10 +223,25 @@ class AgentApp:
             time.sleep(interval)
 
     def set_status(self, text, color):
+        """
+        Обновить текст и цвет индикаторов статуса в интерфейсе.
+
+        :param text: строка статуса, отображаемая пользователю.
+        :type text: str
+        :param color: цвет индикатора и надписи в формате HEX.
+        :type color: str
+        """
         self.status_label.config(text=text, fg=color)
         self.status_dot.config(fg=color)
 
     def start(self):
+        """
+        Обработчик кнопки «Запустить мониторинг».
+
+        Валидирует введённый адрес сервера и интервал, переключает состояние
+        кнопок и запускает фоновый поток с циклом отправки метрик.
+        Если данные введены некорректно, показывает сообщение об ошибке.
+        """
         if self.running:
             return
 
@@ -220,6 +281,12 @@ class AgentApp:
         self.thread.start()
 
     def stop(self):
+        """
+        Обработчик кнопки «Остановить».
+
+        Останавливает фоновый поток отправки метрик, переключает состояние
+        кнопок и обновляет статус на «остановлен».
+        """
         if not self.running:
             return
 
@@ -240,6 +307,12 @@ class AgentApp:
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = AgentApp(root)
+    """
+    Точка входа для запуска графического агента SysMonitor.
+
+    Создаёт корневое окно Tkinter (root), инициализирует приложение AgentApp
+    и запускает главный цикл обработки событий.
+    """
+    root = tk.Tk() # корневое окно GUI
+    app = AgentApp(root) # экземпляр графического приложения агента
     root.mainloop()
